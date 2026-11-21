@@ -1,0 +1,4 @@
+failure-threshold: warning
+ignored:
+  # This exercise uses the supplied npm lockfile instead of npm install pinning.
+  - DL3016
