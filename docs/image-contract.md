@@ -1,11 +1,23 @@
-# Image improvement contract
+# Image contract
 
-Keep the existing Node 22 full server and dependency versions. Work in /app. Test only /health on container port 3000; expected HTTP 200 with {"status":"ok"}. PostgreSQL-backed routes are outside this exercise.
+Keep the app and its dependency versions as they are. The image must still work like this:
 
-1. Exclude Git metadata, host node_modules, .env and .env.* (retain .env.example), logs, coverage and dist from the context.
-2. Copy package.json and package-lock.json, run npm ci --omit=dev, then copy only src. Do not use broad COPY . . in the application recipe.
-3. Use the base image's existing node user. Place USER node after build-time install/copy steps and before JSON-form CMD. This server does not write to /app, so no ownership rewrite is required.
-4. Keep the supplied lint script and policy unchanged. Repair the prepared Dockerfile finding, not the lint threshold or ignore list.
-5. A source-only comment must invalidate the source COPY while reusing the npm ci layer on the immediate rebuild. No --no-cache or cache deletion.
+| Item | Value |
+| --- | --- |
+| Base image | `node:22-bookworm-slim` |
+| Folder inside the image | `/app` |
+| Container port | `3000` |
+| Health check | `GET /health` returns HTTP 200 and `{"status":"ok"}` |
 
-Diagnostic Context.Dockerfile copies the full *filtered* context into a scratch image for a file-list audit. It is not the application image and is not linted by the supplied application check. Its default image user is irrelevant to the runtime-user task.
+`/health` does not need the database. Routes that use PostgreSQL are not part of this exercise.
+
+## What to improve
+
+1. **Build context.** Keep these out of what Docker can see: `.git`, `node_modules`, `.env`, every `.env.*` file except `.env.example`, `logs`, `coverage` and `dist`.
+2. **Layer order.** Copy `package.json` and `package-lock.json`, run `npm ci --omit=dev`, then copy only `src`. Do not use `COPY . .`.
+3. **Runtime user.** Use the `node` user that the base image already has. Put `USER node` after the install and copy steps, and before `CMD`. The app only reads its files, so you do not need to change file ownership.
+4. **Lint.** Fix the Dockerfile so the supplied lint check passes. Do not change the lint script or `.hadolint.yaml`.
+
+## About Context.Dockerfile
+
+`Context.Dockerfile` is only used by `scripts/audit-context.sh` to list the files Docker can see. It is not the app image. Do not edit it.

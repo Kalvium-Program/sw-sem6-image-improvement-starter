@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 cd "$(dirname "$0")/.."
-OUT=$(mktemp -d "${TMPDIR:-/tmp}/lu27-context.XXXXXX")
+OUT=$(mktemp -d "${TMPDIR:-/tmp}/context-audit.XXXXXX")
 docker build --file Context.Dockerfile --output "type=local,dest=$OUT" .
 for p in .git node_modules .env .env.local logs coverage dist; do
   if [ -e "$OUT/context/$p" ]; then
